@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .calculator {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        input {
+            width: 300px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .success {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>🔢 Calculator</h1>
+        <div>
+            <input type="text" id="expression" placeholder="Enter expression (e.g., 15.264-10.15365)">
+            <button onclick="calculate()">Calculate</button>
+        </div>
+        <div class="result" id="result"></div>
+        
+        <h3>Examples:</h3>
+        <ul>
+            <li><code>15.264 - 10.15365</code></li>
+            <li><code>3.14159 * 2.71828</code></li>
+            <li><code>100 / 3</code></li>
+            <li><code>-5 + 10</code></li>
+        </ul>
+    </div>
+
+    <script>
+        async function calculate() {
+            const expression = document.getElementById('expression').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!expression) {
+                resultDiv.innerHTML = '<span class="error">Please enter an expression</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ expression: expression })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ ${data.result} = ${data.value}</span>
+                        <br>
+                        <small>Precision: ${data.precision} decimal places</small>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Network error: ${error.message}</span>`;
+            }
+        }
+        
+        // Allow Enter key to trigger calculation
+        document.getElementById('expression').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
